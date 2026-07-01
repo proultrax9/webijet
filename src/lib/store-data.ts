@@ -39,8 +39,8 @@ export async function getRecentPurchases(limit = 12) {
     .filter((o) => o.items[0])
     .map((o) => ({
       id: o.id,
-      productName: o.items[0].product.name,
-      productImage: o.items[0].product.imageUrl,
+      productName: o.items[0].product?.name ?? o.items[0].productName ?? "สินค้า",
+      productImage: o.items[0].product?.imageUrl ?? null,
       buyerName: o.user.username,
       price: o.items[0].price,
       createdAt: o.createdAt.toISOString(),
@@ -103,9 +103,26 @@ export async function getActiveProducts(opts?: {
   });
 }
 
-export async function getProductBySlug(slug: string) {
+/**
+ * หา product จากพารามิเตอร์ URL — รองรับทั้งเลขสินค้า (/products/1)
+ * และ slug (รวมถึง slug ภาษาไทยที่มาแบบ percent-encoded)
+ */
+export async function getProductByParam(param: string) {
+  let decoded = param;
+  try {
+    decoded = decodeURIComponent(param);
+  } catch {
+    // ปล่อยใช้ค่าดิบถ้า decode ไม่ได้
+  }
+
+  if (/^\d+$/.test(decoded)) {
+    return prisma.product.findUnique({
+      where: { no: Number(decoded) },
+      include: { category: true },
+    });
+  }
   return prisma.product.findUnique({
-    where: { slug },
+    where: { slug: decoded },
     include: { category: true },
   });
 }

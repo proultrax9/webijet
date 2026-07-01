@@ -16,12 +16,12 @@ export function CategoryCard({ category }: { category: CategoryCardData }) {
       href={`/products?category=${category.slug}`}
       className="group flex flex-col overflow-hidden rounded-3xl border border-white/70 bg-card shadow-soft transition-all hover:-translate-y-1 hover:shadow-kawaii"
     >
-      {/* แบนเนอร์ */}
-      <div className="relative aspect-[16/7] overflow-hidden bg-gradient-to-br from-primary/20 via-accent to-secondary/20">
+      {/* แบนเนอร์ — fix สัดส่วน 1640×500 บีบรูปให้เต็มกรอบเหมือน hero banner */}
+      <div className="relative aspect-[1640/500] overflow-hidden bg-gradient-to-br from-primary/20 via-accent to-secondary/20">
         <img
           src={category.imageUrl ?? "/assets/mascot.svg"}
           alt={category.name}
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          className="h-full w-full object-fill transition-transform duration-500 group-hover:scale-105"
         />
       </div>
 

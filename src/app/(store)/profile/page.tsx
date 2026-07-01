@@ -91,7 +91,9 @@ export default async function ProfilePage() {
               {orders.map((o) => (
                 <TableRow key={o.id}>
                   <TableCell className="font-mono text-xs">{o.billNumber}</TableCell>
-                  <TableCell>{o.items.map((i) => i.product.name).join(", ")}</TableCell>
+                  <TableCell>
+                    {o.items.map((i) => i.product?.name ?? i.productName ?? "สินค้าถูกลบไปแล้ว").join(", ")}
+                  </TableCell>
                   <TableCell className="font-bold text-danger">{formatBaht(o.totalPrice)}</TableCell>
                   <TableCell>
                     <Badge variant="muted">

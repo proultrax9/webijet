@@ -5,7 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { BuyButton } from "@/components/store/BuyButton";
 import { JsonLd } from "@/components/JsonLd";
-import { getProductBySlug } from "@/lib/store-data";
+import { getProductByParam } from "@/lib/store-data";
 import { getSettings } from "@/lib/settings";
 import { getSiteBaseUrl } from "@/lib/theme-utils";
 import { productJsonLd, breadcrumbJsonLd, absoluteUrl } from "@/lib/seo";
@@ -18,7 +18,7 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  const product = await getProductBySlug(params.slug);
+  const product = await getProductByParam(params.slug);
   if (!product) return { title: "ไม่พบสินค้า" };
 
   const settings = await getSettings();
@@ -26,7 +26,7 @@ export async function generateMetadata({
     product.description?.trim() ||
     `${product.name} ราคา ${formatBaht(product.price)} — ${settings.general.siteName} จำหน่าย ID Roblox และ Item ปลอดภัย รวดเร็ว`;
   const image = absoluteUrl(getSiteBaseUrl(settings.gsc.propertyUrl), product.imageUrl ?? "/assets/mascot.svg");
-  const canonical = `/products/${product.slug}`;
+  const canonical = `/products/${product.no ?? product.slug}`;
 
   return {
     title: product.name,
@@ -55,7 +55,7 @@ export default async function ProductDetailPage({
 }: {
   params: { slug: string };
 }) {
-  const product = await getProductBySlug(params.slug);
+  const product = await getProductByParam(params.slug);
   if (!product || !product.isActive) notFound();
 
   const soldOut = product.stock <= 0;
@@ -71,7 +71,7 @@ export default async function ProductDetailPage({
           breadcrumbJsonLd(base, [
             { name: "หน้าแรก", path: "/" },
             { name: "สินค้าทั้งหมด", path: "/products" },
-            { name: product.name, path: `/products/${product.slug}` },
+            { name: product.name, path: `/products/${product.no ?? product.slug}` },
           ]),
         ]}
       />
@@ -95,8 +95,18 @@ export default async function ProductDetailPage({
 
         <div className="space-y-4">
           <div className="flex flex-wrap gap-2">
+            {product.badgeLabel && (
+              <span
+                className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold text-white shadow-sm"
+                style={{ backgroundColor: product.badgeColor || "#8b5cf6" }}
+              >
+                {product.badgeLabel}
+              </span>
+            )}
+            {product.special && <Badge variant="secondary">✨ พิเศษ</Badge>}
             {product.featured && <Badge variant="pink">⭐ แนะนำ</Badge>}
             {product.bestseller && <Badge variant="success">ขายดี</Badge>}
+            {product.warranty && <Badge variant="successSoft">🛡 รับประกัน</Badge>}
             <Badge variant="muted">{product.category.name}</Badge>
           </div>
 
@@ -114,13 +124,37 @@ export default async function ProductDetailPage({
             )}
           </p>
 
+          {product.duration && (
+            <p className="text-sm text-muted-foreground">⏱ ระยะเวลา: {product.duration}</p>
+          )}
+
+          {product.videoUrl && (
+            <a
+              href={product.videoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+            >
+              ▶ ดูวิดีโอตัวอย่างสินค้า
+            </a>
+          )}
+
           {product.description && (
-            <p className="rounded-2xl bg-accent/40 p-4 text-sm leading-relaxed text-foreground/80">
+            <p className="whitespace-pre-line rounded-2xl bg-accent/40 p-4 text-sm leading-relaxed text-foreground/80">
               {product.description}
             </p>
           )}
 
-          <BuyButton productId={product.id} price={product.price} soldOut={soldOut} />
+          <BuyButton
+            productId={product.id}
+            price={product.price}
+            soldOut={soldOut}
+            minQty={product.minQty}
+            maxQty={product.maxQty}
+            stock={product.stock}
+            promoBuyQty={product.promoBuyQty}
+            promoFreeQty={product.promoFreeQty}
+          />
 
           <p className="text-xs text-muted-foreground">
             ระบบจะหักเงินจากกระเป๋าเงินของคุณและส่งข้อมูลสินค้าดิจิทัลทันทีหลังชำระสำเร็จ

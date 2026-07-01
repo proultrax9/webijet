@@ -18,7 +18,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: "กรุณาเข้าสู่ระบบก่อนซื้อสินค้า" }, { status: 401 });
     }
 
-    const { productId } = (await req.json()) as { productId?: string };
+    const body = (await req.json()) as { productId?: string; quantity?: number };
+    const productId = body.productId;
     if (!productId) {
       return NextResponse.json({ ok: false, error: "ไม่พบสินค้า" }, { status: 400 });
     }
@@ -31,39 +32,81 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: "สินค้าหมดแล้ว" }, { status: 400 });
     }
 
+    // จำนวนที่ซื้อ: บังคับตามขั้นต่ำ/สูงสุดของสินค้า
+    const qty = Math.max(1, Math.trunc(Number(body.quantity) || 1));
+    if (qty < product.minQty) {
+      return NextResponse.json(
+        { ok: false, error: `สินค้านี้ต้องซื้อขั้นต่ำ ${product.minQty} ชิ้น` },
+        { status: 400 },
+      );
+    }
+    if (qty > product.maxQty) {
+      return NextResponse.json(
+        { ok: false, error: `สินค้านี้ซื้อได้สูงสุด ${product.maxQty} ชิ้นต่อครั้ง` },
+        { status: 400 },
+      );
+    }
+    if (qty > product.stock) {
+      return NextResponse.json(
+        { ok: false, error: `สต็อกไม่เพียงพอ (คงเหลือ ${product.stock} ชิ้น)` },
+        { status: 400 },
+      );
+    }
+
+    const totalPrice = product.price * qty;
+
     const freshUser = await prisma.user.findUnique({ where: { id: user.id } });
-    if (!freshUser || freshUser.balance < product.price) {
+    if (!freshUser || freshUser.balance < totalPrice) {
       return NextResponse.json(
         { ok: false, error: "ยอดเงินไม่เพียงพอ กรุณาเติมเงินก่อน" },
         { status: 400 },
       );
     }
 
-    const stockItem = await prisma.stockItem.findFirst({
+    // โปรซื้อ X แถม Y (แถมได้เท่าที่สต็อกจริงเหลือ)
+    const promoFree =
+      product.promoBuyQty > 0 && product.promoFreeQty > 0
+        ? Math.floor(qty / product.promoBuyQty) * product.promoFreeQty
+        : 0;
+
+    const stockItems = await prisma.stockItem.findMany({
       where: { productId: product.id, isSold: false },
+      take: qty + promoFree,
     });
 
+    // มีสต็อกจริงในระบบแต่ไม่พอตามจำนวนที่ซื้อ
+    if (stockItems.length > 0 && stockItems.length < qty) {
+      return NextResponse.json(
+        { ok: false, error: `สต็อกไม่เพียงพอ (คงเหลือ ${stockItems.length} ชิ้น)` },
+        { status: 400 },
+      );
+    }
+
     const billNumber = generateBillNumber();
-    const delivered = stockItem?.content ?? `DEMO-${product.slug}-${Date.now()}`;
+    const deliveredList =
+      stockItems.length > 0
+        ? stockItems.map((s) => s.content)
+        : Array.from({ length: qty }, (_, i) => `DEMO-${product.slug}-${Date.now()}-${i + 1}`);
+    const paidCount = stockItems.length > 0 ? Math.min(qty, stockItems.length) : qty;
 
     const outcome = await prisma.$transaction(async (tx) => {
       // หักยอดเงินแบบอะตอมมิก: สำเร็จเฉพาะเมื่อยอดยังพอ (กัน race/ยอดติดลบ และไม่ทับยอดเติมเงินที่เข้ามาระหว่างทาง)
       const debit = await tx.user.updateMany({
-        where: { id: user.id, balance: { gte: product.price } },
-        data: { balance: { decrement: product.price } },
+        where: { id: user.id, balance: { gte: totalPrice } },
+        data: { balance: { decrement: totalPrice } },
       });
       if (debit.count === 0) return { kind: "insufficient" as const };
 
-      if (stockItem) {
-        // เคลมชิ้นสต็อกแบบอะตอมมิก: สำเร็จเฉพาะเมื่อยังไม่ถูกขาย กันส่งของชิ้นเดียวซ้ำให้สองคน
+      if (stockItems.length > 0) {
+        // เคลมชิ้นสต็อกแบบอะตอมมิก: สำเร็จเฉพาะเมื่อยังไม่ถูกขายครบทุกชิ้น กันส่งของชิ้นเดียวซ้ำให้สองคน
         const claim = await tx.stockItem.updateMany({
-          where: { id: stockItem.id, isSold: false },
+          where: { id: { in: stockItems.map((s) => s.id) }, isSold: false },
           data: { isSold: true, soldAt: new Date() },
         });
-        if (claim.count === 0) throw new StockRaceError();
+        if (claim.count !== stockItems.length) throw new StockRaceError();
         await tx.product.update({
           where: { id: product.id },
-          data: { stock: { decrement: 1 } },
+          data: { stock: { decrement: stockItems.length } },
         });
       }
 
@@ -71,14 +114,16 @@ export async function POST(req: Request) {
         data: {
           billNumber,
           userId: user.id,
-          totalPrice: product.price,
+          totalPrice,
           status: ORDER_STATUS.COMPLETED,
           items: {
-            create: {
+            create: deliveredList.map((delivered, i) => ({
               productId: product.id,
-              price: product.price,
+              productName: product.name, // snapshot กันชื่อหายถ้าสินค้าถูกลบ
+              // ชิ้นที่เกินจำนวนที่จ่าย = ของแถม ราคา 0
+              price: i < paidCount ? product.price : 0,
               delivered,
-            },
+            })),
           },
         },
       });
@@ -101,8 +146,8 @@ export async function POST(req: Request) {
       title: "🛍 มีการซื้อสินค้า",
       fields: [
         { name: "ผู้ใช้", value: user.username },
-        { name: "สินค้า", value: product.name },
-        { name: "ราคา", value: `${product.price} บาท` },
+        { name: "สินค้า", value: `${product.name} x${qty}` },
+        { name: "ราคา", value: `${totalPrice} บาท` },
         { name: "บิล", value: order.billNumber },
       ],
     });
@@ -110,7 +155,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       ok: true,
       billNumber: order.billNumber,
-      delivered,
+      delivered: deliveredList.join("\n"),
       newBalance: outcome.balance,
     });
   } catch (err) {

@@ -49,6 +49,7 @@ export async function POST(req: Request) {
       data: {
         name,
         slug,
+        description: body.description?.toString().trim() || null,
         imageUrl: body.imageUrl?.toString().trim() || null,
         parentId: body.parentId?.toString().trim() || null,
         priority: toInt(body.priority, 0),
@@ -81,13 +82,18 @@ export async function PUT(req: Request) {
     }
     const slug = (body.slug ?? "").toString().trim() || slugify(name);
 
+    // กันตั้งหมวดหมู่ตัวเองเป็นหมวดหมู่หลักของตัวเอง (loop)
+    let parentId = body.parentId?.toString().trim() || null;
+    if (parentId === id) parentId = null;
+
     const category = await prisma.category.update({
       where: { id },
       data: {
         name,
         slug,
+        description: body.description?.toString().trim() || null,
         imageUrl: body.imageUrl?.toString().trim() || null,
-        parentId: body.parentId?.toString().trim() || null,
+        parentId,
         priority: toInt(body.priority, 0),
         featured: toBool(body.featured, false),
         isActive: toBool(body.isActive, true),

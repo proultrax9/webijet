@@ -32,34 +32,53 @@ model User {
 }
 
 model Category {
-  id        String     @id @default(cuid())
-  name      String
-  slug      String     @unique
-  imageUrl  String?
-  parentId  String?
-  parent    Category?  @relation("SubCategories", fields: [parentId], references: [id])
-  children  Category[] @relation("SubCategories")
-  priority  Int        @default(0)
-  featured  Boolean    @default(false)
-  isActive  Boolean    @default(true)
-  products  Product[]
-  createdAt DateTime   @default(now())
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique
+  description String?
+  imageUrl    String?
+  parentId    String?
+  parent      Category?  @relation("SubCategories", fields: [parentId], references: [id])
+  children    Category[] @relation("SubCategories")
+  priority    Int        @default(0)
+  featured    Boolean    @default(false)
+  isActive    Boolean    @default(true)
+  products    Product[]
+  createdAt   DateTime   @default(now())
 }
 
 model Product {
   id             String      @id @default(cuid())
+  no             Int?        @unique // เลขสินค้าสำหรับ URL เช่น /products/1
   name           String
   slug           String      @unique
   description    String?
   imageUrl       String?
+  downloadUrl    String?
+  videoUrl       String?
+  duration       String? // ระยะเวลา เช่น "30 วัน"
   price          Float
   priceMin       Float?
   priceMax       Float?
   stock          Int         @default(0)
   priority       Int         @default(0)
+  minQty         Int         @default(1) // จำนวนขั้นต่ำที่ซื้อได้
+  maxQty         Int         @default(1000) // จำนวนสูงสุดที่ซื้อได้
   featured       Boolean     @default(false)
   bestseller     Boolean     @default(false)
+  special        Boolean     @default(false) // สินค้าพิเศษ
+  warranty       Boolean     @default(false) // รับประกัน
+  isPreorder     Boolean     @default(false) // สินค้าแบบออเดอร์
+  requiresInput  Boolean     @default(false) // ต้องกรอกข้อมูลตอนซื้อ
   isActive       Boolean     @default(true)
+  allowPoints    Boolean     @default(false) // อนุญาตให้ซื้อด้วยแต้ม
+  promoBuyQty    Int         @default(0) // โปรซื้อ X (0 = ปิด)
+  promoFreeQty   Int         @default(0) // แถม Y (0 = ปิด)
+  installment    Boolean     @default(false) // ระบบผ่อนชำระ
+  colorPrimary   String? // สีหลักของการ์ดสินค้า
+  colorSecondary String? // สีรอง
+  badgeLabel     String? // Custom Badge Label
+  badgeColor     String? // สี Custom Badge
   resellerPrice  Float?
   discountPct    Int?
   categoryId     String
@@ -73,10 +92,11 @@ model Product {
 model StockItem {
   id        String    @id @default(cuid())
   productId String
-  product   Product   @relation(fields: [productId], references: [id])
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
   content   String // key/account/data ดิจิทัล
   isSold    Boolean   @default(false)
   soldAt    DateTime?
+  createdAt DateTime  @default(now())
 }
 
 model Order {
@@ -91,13 +111,14 @@ model Order {
 }
 
 model OrderItem {
-  id        String  @id @default(cuid())
-  orderId   String
-  order     Order   @relation(fields: [orderId], references: [id])
-  productId String
-  product   Product @relation(fields: [productId], references: [id])
-  price     Float
-  delivered String? // ข้อมูลที่ส่งให้ลูกค้า
+  id          String   @id @default(cuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id])
+  productId   String?
+  product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productName String? // snapshot ชื่อสินค้า ณ ตอนซื้อ (คงอยู่แม้สินค้าถูกลบ)
+  price       Float
+  delivered   String? // ข้อมูลที่ส่งให้ลูกค้า
 }
 
 model Topup {
@@ -133,7 +154,7 @@ model Review {
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   productId String
-  product   Product  @relation(fields: [productId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   rating    Int      @default(5)
   comment   String?
   createdAt DateTime @default(now())

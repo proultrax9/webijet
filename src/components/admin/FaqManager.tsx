@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 type FaqItem = {
   id: string;
@@ -23,6 +24,7 @@ export function FaqManager({ initial }: { initial: FaqItem[] }) {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [loading, setLoading] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   async function addFaq(e: React.FormEvent) {
     e.preventDefault();
@@ -47,7 +49,6 @@ export function FaqManager({ initial }: { initial: FaqItem[] }) {
   }
 
   async function remove(id: string) {
-    if (!confirm("ลบ FAQ นี้?")) return;
     const res = await fetch(`/api/admin/faq?id=${id}`, { method: "DELETE" });
     const data = await res.json();
     if (!data.ok) alert(data.error ?? "ลบไม่สำเร็จ");
@@ -87,12 +88,25 @@ export function FaqManager({ initial }: { initial: FaqItem[] }) {
                     ลำดับ {f.sortOrder}
                   </Badge>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => remove(f.id)}>
+                <Button variant="outline" size="sm" onClick={() => setDeleteId(f.id)}>
                   <Trash2 className="size-4" />
                 </Button>
               </div>
             ))}
           </div>
+        )}
+
+        {deleteId && (
+          <ConfirmDialog
+            open={!!deleteId}
+            onOpenChange={(o) => !o && setDeleteId(null)}
+            title="ยืนยันการลบ FAQ"
+            description="คุณต้องการลบ FAQ นี้ถาวรหรือไม่? การดำเนินการนี้ไม่สามารถย้อนกลับได้"
+            onConfirm={async () => {
+              await remove(deleteId);
+              setDeleteId(null);
+            }}
+          />
         )}
       </CardContent>
     </Card>

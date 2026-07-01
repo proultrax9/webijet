@@ -50,6 +50,48 @@ function toIntOrNull(v: unknown) {
   return Number.isFinite(n) ? Math.trunc(n) : null;
 }
 
+function toStrOrNull(v: unknown) {
+  const s = v?.toString().trim();
+  return s ? s : null;
+}
+
+// ฟิลด์ร่วมของ POST/PUT ที่มาจากฟอร์มสินค้า
+function productDataFromBody(body: Record<string, unknown>) {
+  const minQty = Math.max(1, toInt(body.minQty, 1));
+  const maxQty = Math.max(minQty, toInt(body.maxQty, 1000));
+  return {
+    description: toStrOrNull(body.description),
+    imageUrl: toStrOrNull(body.imageUrl),
+    downloadUrl: toStrOrNull(body.downloadUrl),
+    videoUrl: toStrOrNull(body.videoUrl),
+    duration: toStrOrNull(body.duration),
+    price: toFloat(body.price, 0),
+    priceMin: toFloatOrNull(body.priceMin),
+    priceMax: toFloatOrNull(body.priceMax),
+    stock: toInt(body.stock, 0),
+    priority: toInt(body.priority, 0),
+    minQty,
+    maxQty,
+    featured: toBool(body.featured, false),
+    bestseller: toBool(body.bestseller, false),
+    special: toBool(body.special, false),
+    warranty: toBool(body.warranty, false),
+    isPreorder: toBool(body.isPreorder, false),
+    requiresInput: toBool(body.requiresInput, false),
+    isActive: toBool(body.isActive, true),
+    allowPoints: toBool(body.allowPoints, false),
+    promoBuyQty: Math.max(0, toInt(body.promoBuyQty, 0)),
+    promoFreeQty: Math.max(0, toInt(body.promoFreeQty, 0)),
+    installment: toBool(body.installment, false),
+    colorPrimary: toStrOrNull(body.colorPrimary),
+    colorSecondary: toStrOrNull(body.colorSecondary),
+    badgeLabel: toStrOrNull(body.badgeLabel),
+    badgeColor: toStrOrNull(body.badgeColor),
+    resellerPrice: toFloatOrNull(body.resellerPrice),
+    discountPct: toIntOrNull(body.discountPct),
+  };
+}
+
 export async function POST(req: Request) {
   const denied = await requireAdmin();
   if (denied) return denied;
@@ -65,23 +107,15 @@ export async function POST(req: Request) {
     }
     const slug = (body.slug ?? "").toString().trim() || slugify(name);
 
+    // เลขสินค้าถัดไปสำหรับ URL /products/{no}
+    const maxNo = await prisma.product.aggregate({ _max: { no: true } });
     const product = await prisma.product.create({
       data: {
         name,
         slug,
-        description: body.description?.toString().trim() || null,
-        imageUrl: body.imageUrl?.toString().trim() || null,
-        price: toFloat(body.price, 0),
-        priceMin: toFloatOrNull(body.priceMin),
-        priceMax: toFloatOrNull(body.priceMax),
-        stock: toInt(body.stock, 0),
-        priority: toInt(body.priority, 0),
-        featured: toBool(body.featured, false),
-        bestseller: toBool(body.bestseller, false),
-        isActive: toBool(body.isActive, true),
-        resellerPrice: toFloatOrNull(body.resellerPrice),
-        discountPct: toIntOrNull(body.discountPct),
+        no: (maxNo._max.no ?? 0) + 1,
         categoryId,
+        ...productDataFromBody(body),
       },
     });
     return NextResponse.json({ ok: true, product });
@@ -118,19 +152,8 @@ export async function PUT(req: Request) {
       data: {
         name,
         slug,
-        description: body.description?.toString().trim() || null,
-        imageUrl: body.imageUrl?.toString().trim() || null,
-        price: toFloat(body.price, 0),
-        priceMin: toFloatOrNull(body.priceMin),
-        priceMax: toFloatOrNull(body.priceMax),
-        stock: toInt(body.stock, 0),
-        priority: toInt(body.priority, 0),
-        featured: toBool(body.featured, false),
-        bestseller: toBool(body.bestseller, false),
-        isActive: toBool(body.isActive, true),
-        resellerPrice: toFloatOrNull(body.resellerPrice),
-        discountPct: toIntOrNull(body.discountPct),
         categoryId,
+        ...productDataFromBody(body),
       },
     });
     return NextResponse.json({ ok: true, product });
@@ -152,8 +175,15 @@ export async function DELETE(req: Request) {
     if (!id) {
       return NextResponse.json({ ok: false, error: "ไม่พบรหัสสินค้า" }, { status: 400 });
     }
-    // ลบ stock items ก่อน เพื่อเลี่ยง FK constraint
-    await prisma.stockItem.deleteMany({ where: { productId: id } });
+    // เก็บชื่อสินค้าลงประวัติออเดอร์ก่อนลบ (กันชื่อหายในหน้าประวัติ)
+    const product = await prisma.product.findUnique({ where: { id }, select: { name: true } });
+    if (product) {
+      await prisma.orderItem.updateMany({
+        where: { productId: id, productName: null },
+        data: { productName: product.name },
+      });
+    }
+    // stock/รีวิวถูกลบตาม (cascade) ส่วนประวัติออเดอร์คงอยู่โดยอ้างชื่อจาก snapshot
     await prisma.product.delete({ where: { id } });
     return NextResponse.json({ ok: true });
   } catch (err) {

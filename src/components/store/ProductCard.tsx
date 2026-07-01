@@ -6,6 +6,7 @@ import { formatPriceRange } from "@/lib/utils";
 export interface ProductCardData {
   name: string;
   slug: string;
+  no?: number | null;
   description?: string | null;
   imageUrl?: string | null;
   price: number;
@@ -14,6 +15,10 @@ export interface ProductCardData {
   stock: number;
   featured?: boolean;
   bestseller?: boolean;
+  special?: boolean;
+  warranty?: boolean;
+  badgeLabel?: string | null;
+  badgeColor?: string | null;
 }
 
 export function ProductCard({ product }: { product: ProductCardData }) {
@@ -21,7 +26,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
 
   return (
     <Link
-      href={`/products/${product.slug}`}
+      href={`/products/${product.no ?? product.slug}`}
       className="group flex flex-col overflow-hidden rounded-2xl border border-white/70 bg-card shadow-soft transition-all hover:-translate-y-1 hover:shadow-kawaii"
     >
       {/* รูปสินค้า + กรอบไล่เฉด */}
@@ -35,9 +40,19 @@ export function ProductCard({ product }: { product: ProductCardData }) {
         </div>
 
         {/* Badge มุมซ้ายบน */}
-        <div className="absolute left-2 top-2 flex flex-col gap-1">
+        <div className="absolute left-2 top-2 flex flex-col items-start gap-1">
+          {product.badgeLabel && (
+            <span
+              className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold text-white shadow-sm"
+              style={{ backgroundColor: product.badgeColor || "#8b5cf6" }}
+            >
+              {product.badgeLabel}
+            </span>
+          )}
+          {product.special && <Badge variant="secondary">✨ พิเศษ</Badge>}
           {product.featured && <Badge variant="pink">⭐ แนะนำ</Badge>}
           {product.bestseller && <Badge variant="success">ขายดี</Badge>}
+          {product.warranty && <Badge variant="successSoft">🛡 รับประกัน</Badge>}
         </div>
       </div>
 

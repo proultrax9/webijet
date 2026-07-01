@@ -40,6 +40,7 @@ export function productJsonLd(
   product: {
     name: string;
     slug: string;
+    no?: number | null;
     description?: string | null;
     imageUrl?: string | null;
     price: number;
@@ -59,7 +60,7 @@ export function productJsonLd(
     brand: { "@type": "Brand", name: siteName },
     offers: {
       "@type": "Offer",
-      url: `${base}/products/${product.slug}`,
+      url: `${base}/products/${product.no ?? product.slug}`,
       priceCurrency: "THB",
       price: product.price,
       availability:

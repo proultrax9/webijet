@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Shield, Zap, Award, Users, Package, ShoppingCart } from "lucide-react";
+import { Users, Package, ShoppingCart } from "lucide-react";
 import { StoreStatCard } from "@/components/store/StoreStatCard";
 import { RecentPurchases } from "@/components/store/RecentPurchases";
 import { CategoryCard } from "@/components/store/CategoryCard";
@@ -7,6 +7,7 @@ import { ProductCard } from "@/components/store/ProductCard";
 import { SectionHeading } from "@/components/store/SectionHeading";
 import { NavButtonRow } from "@/components/store/NavButtonRow";
 import { AdBannerBlock } from "@/components/store/AdBannerBlock";
+import { HeroBannerCarousel } from "@/components/store/HeroBannerCarousel";
 import { CustomHtmlBlock } from "@/components/store/CustomHtmlBlock";
 import { JsonLd } from "@/components/JsonLd";
 import {
@@ -32,7 +33,10 @@ export default async function HomePage() {
     getFeaturedProducts(sortByPrice),
   ]);
 
-  const heroBanner = settings.banners.find((b) => b.trim()) ?? "/assets/hero-banner.svg";
+  const heroBanners = settings.banners.map((b) => b.trim()).filter(Boolean);
+  if (heroBanners.length === 0) heroBanners.push("/assets/hero-banner.svg");
+  const siteName =
+    settings.general.siteName.replace(" Shop", "").replace("Shop", "") || "O-Hayo";
   const base = getSiteBaseUrl(settings.gsc.propertyUrl);
 
   return (
@@ -40,44 +44,14 @@ export default async function HomePage() {
       <JsonLd
         data={[organizationJsonLd(base, settings), websiteJsonLd(base, settings)]}
       />
-      {/* Hero */}
-      <section className="relative overflow-hidden rounded-3xl border border-white/70 bg-kawaii-gradient p-6 shadow-kawaii md:p-10">
-        <div className="relative z-10 max-w-2xl">
-          <p className="mb-2 text-sm font-semibold text-primary/80">
-            จำหน่าย ID Roblox และ Item แบบครบวงจร
-          </p>
-          <h1 className="text-4xl font-black tracking-tight text-primary md:text-5xl">
-            {settings.general.siteName.replace(" Shop", "").replace("Shop", "") || "O-Hayo"}
-          </h1>
-          <p className="mt-3 text-muted-foreground">
-            {settings.general.announcement}
-          </p>
-        </div>
-        <img
-          src={heroBanner}
-          alt=""
-          width={480}
-          height={180}
-          className="pointer-events-none absolute -right-4 bottom-0 hidden max-h-48 w-auto max-w-[55%] object-contain opacity-90 md:block lg:max-h-56"
-          aria-hidden
+      {/* Hero — banner สไลด์เต็มความกว้าง (ตั้งรูปได้ที่ จัดการระบบ → ตั้งค่า → Banner) */}
+      <div>
+        <h1 className="sr-only">{siteName} — จำหน่าย ID Roblox และ Item แบบครบวงจร</h1>
+        <HeroBannerCarousel
+          banners={heroBanners}
+          alt={`${siteName} — จำหน่าย ID Roblox และ Item แบบครบวงจร`}
         />
-
-        <div className="relative z-10 mt-6 flex flex-wrap gap-2">
-          {[
-            { icon: Shield, text: "ปลอดภัย เชื่อถือได้ 100%" },
-            { icon: Zap, text: "รวดเร็ว ส่งไว ทันใจ" },
-            { icon: Award, text: "บริการดี ดูแลทุกออเดอร์" },
-          ].map(({ icon: Icon, text }) => (
-            <span
-              key={text}
-              className="inline-flex items-center gap-2 rounded-full border border-white/80 bg-white/90 px-3 py-1.5 text-xs font-semibold shadow-sm"
-            >
-              <Icon className="size-4 text-primary" />
-              {text}
-            </span>
-          ))}
-        </div>
-      </section>
+      </div>
 
       <NavButtonRow buttons={settings.navButtons} />
       <AdBannerBlock

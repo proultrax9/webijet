@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Settings, RefreshCw, Check } from "lucide-react";
+import { Settings, RefreshCw, Check, Copy, ClipboardPaste } from "lucide-react";
 import type { SiteSettingsData } from "@/lib/settings";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,14 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { FaqManager } from "@/components/admin/FaqManager";
 import { GscPanel } from "@/components/admin/GscPanel";
 import { FONT_MAP } from "@/lib/theme-utils";
@@ -47,6 +55,8 @@ export function SettingsPanel({
   const [data, setData] = useState(initial);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const [importText, setImportText] = useState("");
 
   async function save(partial: Partial<SiteSettingsData>) {
     setSaving(true);
@@ -72,6 +82,41 @@ export function SettingsPanel({
     }
   }
 
+  async function copyConfig() {
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
+      setMsg("คัดลอก config ทั้งหมดแล้ว นำไปวางที่เว็บอื่นหรือเก็บสำรองได้เลย");
+    } catch {
+      setMsg("คัดลอกไม่สำเร็จ — เบราว์เซอร์ไม่อนุญาตให้เข้าถึงคลิปบอร์ด");
+    }
+  }
+
+  async function pasteFromClipboard() {
+    try {
+      const text = await navigator.clipboard.readText();
+      setImportText(text);
+    } catch {
+      alert("อ่านคลิปบอร์ดไม่ได้ กรุณากด Ctrl+V วางในช่องด้านล่างแทน");
+    }
+  }
+
+  async function applyImport() {
+    let parsed: Partial<SiteSettingsData>;
+    try {
+      parsed = JSON.parse(importText);
+    } catch {
+      alert("รูปแบบข้อมูลไม่ถูกต้อง ต้องเป็น JSON ที่ได้จากปุ่ม \"คัดลอก Config\"");
+      return;
+    }
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      alert("รูปแบบข้อมูลไม่ถูกต้อง ต้องเป็น JSON ที่ได้จากปุ่ม \"คัดลอก Config\"");
+      return;
+    }
+    await save(parsed);
+    setImportOpen(false);
+    setImportText("");
+  }
+
   return (
     <div>
       <PageHeader
@@ -79,12 +124,56 @@ export function SettingsPanel({
         title="จัดการการตั้งค่า"
         subtitle="จัดการการตั้งค่าเว็บไซต์และธีม"
         actions={
-          <Button variant="outline" onClick={() => router.refresh()}>
-            <RefreshCw className="size-4" />
-            รีเฟรชข้อมูล
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={copyConfig}>
+              <Copy className="size-4" />
+              คัดลอก Config
+            </Button>
+            <Button variant="outline" onClick={() => setImportOpen(true)}>
+              <ClipboardPaste className="size-4" />
+              วาง Config
+            </Button>
+            <Button variant="outline" onClick={() => router.refresh()}>
+              <RefreshCw className="size-4" />
+              รีเฟรชข้อมูล
+            </Button>
+          </div>
         }
       />
+
+      <Dialog open={importOpen} onOpenChange={setImportOpen} className="max-w-2xl">
+        <DialogContent onClose={() => setImportOpen(false)}>
+          <DialogHeader>
+            <DialogTitle>วาง Config</DialogTitle>
+            <DialogDescription>
+              วาง JSON ที่ได้จากปุ่ม &quot;คัดลอก Config&quot; แล้วกดนำเข้า —
+              ค่าทั้งหมดจะถูกบันทึกทับการตั้งค่าปัจจุบัน
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Button variant="outline" size="sm" onClick={pasteFromClipboard}>
+              <ClipboardPaste className="size-4" />
+              วางจากคลิปบอร์ด
+            </Button>
+            <Textarea
+              rows={12}
+              value={importText}
+              onChange={(e) => setImportText(e.target.value)}
+              placeholder='{"general": { ... }, "theme": { ... }}'
+              className="font-mono text-xs"
+            />
+          </div>
+          <DialogFooter>
+            <Button onClick={applyImport} disabled={saving || !importText.trim()}>
+              <Check className="size-4" />
+              นำเข้าและบันทึก
+            </Button>
+            <Button variant="outline" onClick={() => setImportOpen(false)}>
+              ยกเลิก
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {msg && (
         <div className="mb-4 rounded-xl border border-success/30 bg-success/10 px-4 py-2 text-sm text-success">

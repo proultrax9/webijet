@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -8,9 +9,14 @@ interface DialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   children: React.ReactNode;
+  /** ปรับความกว้างสูงสุดของหน้าต่าง เช่น "max-w-4xl" (ค่าเริ่มต้น max-w-lg) */
+  className?: string;
 }
 
-export function Dialog({ open, onOpenChange, children }: DialogProps) {
+export function Dialog({ open, onOpenChange, children, className }: DialogProps) {
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => setMounted(true), []);
+
   React.useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onOpenChange(false);
@@ -22,16 +28,19 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
     };
   }, [open, onOpenChange]);
 
-  if (!open) return null;
+  if (!open || !mounted) return null;
 
-  return (
+  // render ผ่าน portal ที่ body เพื่อให้ fixed อิงกับ viewport เสมอ (dialog อยู่กลางจอแน่นอน
+  // ไม่โดน transform/animation ของ parent ทำให้ตำแหน่งเพี้ยน)
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div
         className="absolute inset-0 bg-foreground/40 backdrop-blur-sm animate-fade-up"
         onClick={() => onOpenChange(false)}
       />
-      <div className="relative z-10 w-full max-w-lg animate-pop">{children}</div>
-    </div>
+      <div className={cn("relative z-10 w-full max-w-lg animate-pop", className)}>{children}</div>
+    </div>,
+    document.body,
   );
 }
 

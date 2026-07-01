@@ -12,6 +12,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 type BanDuration = "1" | "7" | "30" | "permanent";
 
@@ -36,14 +37,10 @@ export function UserActions({
   const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
   const [banMenuOpen, setBanMenuOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const isAdmin = role === "ADMIN";
 
-  async function run(
-    action: string,
-    extra?: Record<string, unknown>,
-    confirmMsg?: string,
-  ) {
-    if (confirmMsg && !window.confirm(confirmMsg)) return;
+  async function run(action: string, extra?: Record<string, unknown>) {
     setLoading(action);
     setBanMenuOpen(false);
     try {
@@ -135,18 +132,22 @@ export function UserActions({
         size="sm"
         variant="outline"
         className="border-danger/40 text-danger hover:bg-danger/10"
-        onClick={() =>
-          run(
-            "delete",
-            undefined,
-            "ยืนยันลบผู้ใช้นี้? ข้อมูลออเดอร์/เติมเงิน/รีวิวทั้งหมดจะถูกลบถาวร",
-          )
-        }
+        onClick={() => setConfirmDelete(true)}
         disabled={loading !== null}
       >
         {loading === "delete" ? <Loader2 className="animate-spin" /> : <Trash2 />}
         ลบ
       </Button>
+
+      {confirmDelete && (
+        <ConfirmDialog
+          open={confirmDelete}
+          onOpenChange={setConfirmDelete}
+          title="ยืนยันการลบผู้ใช้"
+          description="คุณต้องการลบผู้ใช้นี้ถาวรหรือไม่? ข้อมูลออเดอร์/เติมเงิน/รีวิวทั้งหมดจะถูกลบและไม่สามารถย้อนกลับได้"
+          onConfirm={() => run("delete")}
+        />
+      )}
     </div>
   );
 }
