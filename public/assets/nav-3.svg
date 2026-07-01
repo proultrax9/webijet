@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 96" role="img" aria-label="มินิเกม">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#f3e8ff"/>
+      <stop offset="1" stop-color="#e8d4ff"/>
+    </linearGradient>
+    <linearGradient id="icon" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#b99cff"/>
+      <stop offset="1" stop-color="#ff8cc8"/>
+    </linearGradient>
+    <filter id="s"><feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="#8050a3" flood-opacity=".25"/></filter>
+    <style>.t{font-family:'Prompt',sans-serif;font-weight:800}</style>
+  </defs>
+  <rect width="280" height="96" rx="20" fill="url(#bg)" stroke="#fff" stroke-width="3"/>
+  <circle cx="48" cy="48" r="30" fill="url(#icon)" stroke="#fff" stroke-width="4" filter="url(#s)"/>
+  <path d="M30 50c2-10 7-14 18-11 11-3 16 1 18 11l3 12c2 8-8 12-14 5l-3-5H44l-3 5c-6 7-16 3-14-5z" fill="#fff"/>
+  <circle cx="58" cy="49" r="3" fill="#ff6fb3"/><circle cx="66" cy="55" r="3" fill="#6CB8FF"/>
+  <text class="t" x="92" y="44" font-size="20" fill="#8b4ad9">มินิเกม</text>
+  <text class="t" x="92" y="66" font-size="13" fill="#9b7fd4" font-weight="600">สุ่มรางวัล</text>
+  <path d="M248 48l6 6 12-12" fill="none" stroke="#b98cff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

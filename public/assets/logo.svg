@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 64" role="img" aria-label="O-Hayo logo">
+  <defs>
+    <linearGradient id="p" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff1fb"/><stop offset=".45" stop-color="#ff8cc8"/><stop offset="1" stop-color="#ff4fa6"/></linearGradient>
+    <linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#6CB8FF"/><stop offset="1" stop-color="#B98CFF"/></linearGradient>
+    <filter id="s" x="-20%" y="-30%" width="140%" height="170%"><feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="#c14f95" flood-opacity=".28"/></filter>
+  </defs>
+  <g filter="url(#s)">
+    <text x="12" y="45" font-family="'Prompt', 'Arial Rounded MT Bold', sans-serif" font-size="42" font-weight="900" fill="none" stroke="#fff" stroke-width="10" stroke-linejoin="round">O-Hayo</text>
+    <text x="12" y="45" font-family="'Prompt', 'Arial Rounded MT Bold', sans-serif" font-size="42" font-weight="900" fill="url(#p)" stroke="#7c4aa8" stroke-width="2" stroke-linejoin="round">O-Hayo</text>
+    <path d="M36 16c8 0 15 6 15 14s-7 15-15 15-15-7-15-15 7-14 15-14z" fill="#fff" opacity=".25"/>
+  </g>
+  <path d="M187 8l4 8 9 1-7 6 2 9-8-4-8 5 1-10-7-6 10-1z" fill="#FFD86B" stroke="#fff" stroke-width="3"/>
+  <path d="M205 35c-7-5-14-9-14-16 0-7 8-9 14-2 6-7 14-5 14 2 0 7-7 11-14 16z" fill="url(#b)" stroke="#fff" stroke-width="3"/>
+</svg>

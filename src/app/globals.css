@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ธีมสี kawaii pastel pink — จาก PROJECT-SPEC Section 3 */
+    --background: 233 100% 98%; /* #F6F7FF */
+    --foreground: 240 12% 20%; /* #2E2E3A */
+
+    --card: 0 0% 100%; /* #FFFFFF */
+    --card-foreground: 240 12% 20%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 12% 20%;
+
+    --primary: 332 100% 72%; /* #FF6FB3 */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 209 100% 71%; /* #6CB8FF */
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 300 30% 96%;
+    --muted-foreground: 240 10% 40%;
+
+    --accent: 320 100% 95%;
+    --accent-foreground: 332 80% 45%;
+
+    --danger: 0 84% 60%; /* #EF4444 */
+    --danger-foreground: 0 0% 100%;
+
+    --success: 142 71% 45%; /* #22C55E */
+    --success-foreground: 0 0% 100%;
+
+    --border: 315 45% 92%;
+    --input: 315 45% 90%;
+    --ring: 332 100% 72%;
+
+    --radius: 1rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Scrollbar สไตล์ kawaii */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: hsl(300 40% 96%);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(hsl(var(--primary)), hsl(var(--secondary)));
+    border-radius: 999px;
+    border: 2px solid hsl(300 40% 96%);
+  }
+}
+
+@layer components {
+  .kawaii-card {
+    @apply rounded-2xl border glass-panel shadow-soft;
+  }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(120deg, #ff6fb3 0%, #a06bff 50%, #6cb8ff 100%);
+  }
+
+  .btn-glow {
+    box-shadow: 0 8px 24px -8px rgba(255, 111, 179, 0.55);
+  }
+
+  /* พื้นหลัง grid ตกแต่งลายจุด */
+  .dotted-bg {
+    background-image: radial-gradient(rgba(255, 150, 200, 0.18) 1.5px, transparent 1.5px);
+    background-size: 22px 22px;
+  }
+
+  .glass {
+    @apply bg-white/70 backdrop-blur-md;
+  }
+
+  /* Panel โปร่งใส — ใช้ร่วมทั้งหน้าร้านและ Admin */
+  .glass-panel {
+    background-color: hsl(0 0% 100% / var(--panel-bg-alpha, 0.72));
+    backdrop-filter: blur(var(--panel-blur, 12px));
+    -webkit-backdrop-filter: blur(var(--panel-blur, 12px));
+    border-color: hsl(0 0% 100% / var(--panel-border-alpha, 0.65));
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  /* ซ่อน scrollbar สำหรับ carousel */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

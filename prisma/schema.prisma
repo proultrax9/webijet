@@ -1,0 +1,197 @@
+// OHayo Shop — Prisma schema (ปรับสำหรับ SQLite)
+// หมายเหตุ: SQLite ไม่รองรับ Decimal/enum/Json แบบ native
+//  - Decimal  -> Float
+//  - enum     -> String (ค่าคงที่อ้างอิงใน src/lib/constants.ts)
+//  - Json      -> String (เก็บ JSON.stringify)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  username      String         @unique
+  passwordHash  String?
+  role          String         @default("USER") // USER | ADMIN
+  balance       Float          @default(0)
+  points        Int            @default(0)
+  avatarUrl     String?
+  bannedUntil   DateTime? // null = ไม่โดนแบน, วันที่ = แบนถึงเมื่อไหร่ (ปีไกล ๆ = ถาวร)
+  createdAt     DateTime       @default(now())
+  orders        Order[]
+  topups        Topup[]
+  reviews       Review[]
+  claims        Claim[]
+  minigamePlays MinigamePlay[]
+}
+
+model Category {
+  id        String     @id @default(cuid())
+  name      String
+  slug      String     @unique
+  imageUrl  String?
+  parentId  String?
+  parent    Category?  @relation("SubCategories", fields: [parentId], references: [id])
+  children  Category[] @relation("SubCategories")
+  priority  Int        @default(0)
+  featured  Boolean    @default(false)
+  isActive  Boolean    @default(true)
+  products  Product[]
+  createdAt DateTime   @default(now())
+}
+
+model Product {
+  id             String      @id @default(cuid())
+  name           String
+  slug           String      @unique
+  description    String?
+  imageUrl       String?
+  price          Float
+  priceMin       Float?
+  priceMax       Float?
+  stock          Int         @default(0)
+  priority       Int         @default(0)
+  featured       Boolean     @default(false)
+  bestseller     Boolean     @default(false)
+  isActive       Boolean     @default(true)
+  resellerPrice  Float?
+  discountPct    Int?
+  categoryId     String
+  category       Category    @relation(fields: [categoryId], references: [id])
+  stockItems     StockItem[]
+  orderItems     OrderItem[]
+  reviews        Review[]
+  createdAt      DateTime    @default(now())
+}
+
+model StockItem {
+  id        String    @id @default(cuid())
+  productId String
+  product   Product   @relation(fields: [productId], references: [id])
+  content   String // key/account/data ดิจิทัล
+  isSold    Boolean   @default(false)
+  soldAt    DateTime?
+}
+
+model Order {
+  id         String      @id @default(cuid())
+  billNumber String      @unique
+  userId     String
+  user       User        @relation(fields: [userId], references: [id])
+  totalPrice Float
+  status     String      @default("PENDING") // PENDING | PROCESSING | COMPLETED | CANCELED
+  items      OrderItem[]
+  createdAt  DateTime    @default(now())
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  price     Float
+  delivered String? // ข้อมูลที่ส่งให้ลูกค้า
+}
+
+model Topup {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  amount    Float
+  method    String // ANGPAO | PROMPTPAY | BANK_SLIP | CODE
+  reference String? // voucher code / slip id / angpao hash
+  status    String   @default("PENDING") // PENDING | SUCCESS | FAILED
+  createdAt DateTime @default(now())
+}
+
+// กันวอยเชอร์/สลิปถูกใช้ซ้ำแบบอะตอมมิก (unique PK — insert ซ้ำจะ fail ใน transaction)
+model UsedVoucher {
+  reference String   @id
+  createdAt DateTime @default(now())
+}
+
+model RedeemCode {
+  id        String    @id @default(cuid())
+  code      String    @unique
+  amount    Float
+  maxUses   Int
+  usedCount Int       @default(0)
+  expiresAt DateTime?
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  rating    Int      @default(5)
+  comment   String?
+  createdAt DateTime @default(now())
+}
+
+model Claim {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  orderId   String
+  reason    String
+  status    String   @default("PENDING") // PENDING | IN_PROGRESS | REJECTED | COMPLETED
+  createdAt DateTime @default(now())
+}
+
+model Minigame {
+  id          String          @id @default(cuid())
+  name        String
+  description String?
+  imageUrl    String?
+  priceBaht   Float           @default(0)
+  usePoints   Boolean         @default(false)
+  sortOrder   Int             @default(0)
+  isActive    Boolean         @default(true)
+  prizes      MinigamePrize[]
+  plays       MinigamePlay[]
+}
+
+model MinigamePrize {
+  id          String   @id @default(cuid())
+  minigameId  String
+  minigame    Minigame @relation(fields: [minigameId], references: [id])
+  name        String
+  probability Float
+  rewardType  String // balance | points | product
+  rewardValue String
+}
+
+model MinigamePlay {
+  id         String   @id @default(cuid())
+  minigameId String
+  minigame   Minigame @relation(fields: [minigameId], references: [id])
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  won        Boolean
+  prizeName  String?
+  createdAt  DateTime @default(now())
+}
+
+model SiteSettings {
+  id   String @id @default("singleton")
+  json String // เก็บ settings ทุก tab เป็น JSON string
+}
+
+model Faq {
+  id        String  @id @default(cuid())
+  question  String
+  answer    String
+  sortOrder Int     @default(0)
+  isActive  Boolean @default(true)
+}

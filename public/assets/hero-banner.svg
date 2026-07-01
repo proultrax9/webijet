@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 380" role="img" aria-label="O-Hayo Shop hero banner">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffd4ed"/><stop offset=".5" stop-color="#eadbff"/><stop offset="1" stop-color="#bfe9ff"/></linearGradient>
+    <linearGradient id="pink" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff5fc"/><stop offset=".42" stop-color="#ff8bc7"/><stop offset="1" stop-color="#ff4fa6"/></linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#f6fdff"/><stop offset=".5" stop-color="#6CB8FF"/><stop offset="1" stop-color="#6175ff"/></linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff8bf"/><stop offset="1" stop-color="#ffb84d"/></linearGradient>
+    <filter id="shadow" x="-15%" y="-20%" width="130%" height="150%"><feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#a24f9d" flood-opacity=".28"/></filter>
+    <style>.t{font-family:'Prompt',sans-serif;font-weight:900}.small{font-family:'Prompt',sans-serif;font-weight:800}</style>
+  </defs>
+  <rect width="1200" height="380" rx="24" fill="url(#sky)"/>
+  <path d="M0 302c120-54 227 10 357-36 142-50 253-102 405-49 158 55 291 11 438-62v225H0z" fill="#fff" opacity=".35"/>
+  <g fill="#fff" opacity=".82"><ellipse cx="114" cy="94" rx="72" ry="24"/><ellipse cx="175" cy="95" rx="58" ry="20"/><ellipse cx="879" cy="67" rx="83" ry="24"/><ellipse cx="963" cy="69" rx="48" ry="17"/><ellipse cx="568" cy="310" rx="126" ry="25"/></g>
+  <g opacity=".9">
+    <path d="M1080 34l9 18 20 3-15 13 4 20-18-10-17 10 3-20-15-13 21-3z" fill="#fff7a8" stroke="#fff" stroke-width="5"/>
+    <path d="M231 54c-16-12-31-22-31-38 0-14 17-19 31-5 14-14 31-9 31 5 0 16-15 26-31 38z" fill="#ff75b8" stroke="#fff" stroke-width="5"/>
+    <path d="M992 259c-10-8-20-14-20-25 0-10 12-13 20-4 9-9 21-6 21 4 0 11-10 17-21 25z" fill="#ff8cc8" stroke="#fff" stroke-width="4"/>
+  </g>
+  <g fill="#fff" opacity=".95">
+    <path d="M72 42l5 11 12 2-9 8 2 12-10-6-10 6 2-12-9-8 12-2z"/><path d="M1124 127l5 10 11 2-8 8 2 11-10-5-10 5 2-11-8-8 11-2z"/><path d="M492 52l3 8 9 1-7 5 2 9-7-4-8 4 2-9-7-5 9-1z"/><circle cx="1052" cy="192" r="5"/><circle cx="328" cy="326" r="4"/>
+  </g>
+  <g filter="url(#shadow)">
+    <g transform="translate(62 70)">
+      <path d="M72 12c-13-33 23-31 37-4 16-27 52-24 37 9 43 9 65 45 57 88-10 54-54 78-101 75-52-3-96-31-99-83C0 55 27 22 72 12z" fill="#fff" stroke="#8a4a67" stroke-width="5"/>
+      <path d="M57 111c-26-8-40-21-39-44 1-28 23-48 54-50l15 29h43l17-28c31 7 49 28 48 57-1 24-16 37-42 39v43H57z" fill="#ffdfef"/>
+      <rect x="49" y="101" width="112" height="74" rx="29" fill="#ff8cc8" stroke="#fff" stroke-width="6"/>
+      <path d="M71 122h68c13 0 23 10 23 23v6c-36 20-78 20-113 0v-6c0-13 10-23 22-23z" fill="#ffb6d9"/>
+      <circle cx="80" cy="73" r="8" fill="#533041"/><circle cx="134" cy="73" r="8" fill="#533041"/>
+      <path d="M100 83c6 7 13 7 19 0" fill="none" stroke="#533041" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="59" cy="91" r="10" fill="#ff82b8"/><circle cx="154" cy="91" r="10" fill="#ff82b8"/>
+      <path d="M143 29c20-21 45-7 36 14-8 20-33 13-36-14z" fill="#ff6fb3" stroke="#fff" stroke-width="5"/>
+      <circle cx="165" cy="32" r="6" fill="#ffd86b"/>
+    </g>
+    <text class="t" x="287" y="159" font-size="95" fill="none" stroke="#fff" stroke-width="18" stroke-linejoin="round">O-Hayo</text>
+    <text class="t" x="287" y="159" font-size="95" fill="url(#pink)" stroke="#813a72" stroke-width="4" stroke-linejoin="round">O-Hayo</text>
+    <text class="t" x="610" y="119" font-size="54" fill="none" stroke="#fff" stroke-width="12" stroke-linejoin="round">จำหน่าย</text>
+    <text class="t" x="610" y="119" font-size="54" fill="#cf3e88">จำหน่าย</text>
+    <text class="small" x="300" y="216" font-size="35" fill="#5f357f">จำหน่าย ID Roblox และ Item แบบครบวงจร</text>
+    <g transform="translate(796 94)">
+      <rect x="42" y="44" width="105" height="88" rx="18" fill="#ff86bd" stroke="#fff" stroke-width="7"/>
+      <path d="M42 59l53 30 52-30" fill="#ffd1e8"/><rect x="78" y="20" width="32" height="121" rx="8" fill="#fff2a8"/><rect x="24" y="72" width="142" height="28" rx="9" fill="#6CB8FF" opacity=".9"/>
+      <circle cx="52" cy="152" r="21" fill="url(#blue)" stroke="#fff" stroke-width="5"/><rect x="176" y="77" width="76" height="76" rx="16" fill="#b99cff" stroke="#fff" stroke-width="6"/><path d="M190 101h48v29h-48z" fill="#fff" opacity=".55"/><path d="M202 91l15 15 21-28" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M276 27l22 39 45 7-32 31 8 44-41-21-40 21 8-44-33-31 46-7z" fill="url(#gold)" stroke="#fff" stroke-width="7"/>
+    </g>
+  </g>
+  <g transform="translate(290 272)" filter="url(#shadow)">
+    <rect width="620" height="62" rx="31" fill="#fff" opacity=".88"/>
+    <g class="small" font-size="22"><text x="66" y="38" fill="#2f72cc">ปลอดภัย</text><text x="280" y="38" fill="#ff5f5f">รวดเร็ว</text><text x="482" y="38" fill="#8b4ad9">บริการดี</text></g>
+    <path d="M35 18l14 11 24-25" fill="none" stroke="#6CB8FF" stroke-width="8" stroke-linecap="round"/><path d="M248 8l-18 31h21l-12 22 39-36h-23l13-17z" fill="#ffb84d"/><circle cx="452" cy="32" r="20" fill="#b98cff"/><path d="M441 31l9 9 18-21" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round"/></g>
+</svg>
